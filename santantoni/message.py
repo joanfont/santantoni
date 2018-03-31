@@ -1,6 +1,6 @@
 from datetime import date
 
-from santantoni.utils import get_next_sant_antoni
+from santantoni.utils import get_next_date
 
 class Message:
 
@@ -20,6 +20,11 @@ class SantAntoniRemainingDays(Message):
     DEFAULT_TEMPLATE = 'Queden {remaining_days} dies per Sant Antoni 👹'
     TEMPLATE_ONE_DAY = 'Demà és Sant Antoni 👹'
     TEMPLATE_TODAY = 'Avui és Sant Antoni 👹'
+
+    SANT_ANTONI_DATE = {
+        'month': 1,
+        'day': 17
+    }
 
     @classmethod
     def filter(cls, message):
@@ -50,7 +55,10 @@ class SantAntoniRemainingDays(Message):
     @classmethod
     def _get_remaining_days(cls):
         today = date.today()
-        next_sant_antoni = get_next_sant_antoni()
+        next_sant_antoni = get_next_date(
+            cls.SANT_ANTONI_DATE['month'],
+            cls.SANT_ANTONI_DATE['day']
+        )
 
         remaining_date = next_sant_antoni - today
         return remaining_date.days
