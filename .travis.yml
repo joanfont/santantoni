@@ -1,0 +1,9 @@
+sudo: required
+
+services:
+  - docker
+
+before_script:
+  - docker build -t joanfont/santantoni --build-arg env=test .
+script:
+  - docker run --rm --entrypoint=pytest joanfont/santantoni
