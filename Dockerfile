@@ -1,11 +1,13 @@
 FROM library/python:3.6.4-alpine
 
+ARG env=prod
+
 RUN pip3 install -U pip
 
 WORKDIR /code/
-ADD requirements.txt /code/
+ADD requirements*.txt /code/
 
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements-${env}.txt
 
 ADD . /code/
 ENTRYPOINT ["python3", "main.py"]
