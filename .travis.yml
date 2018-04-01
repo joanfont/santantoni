@@ -1,10 +1,25 @@
 sudo: required
 
+language: generic
+
 services:
   - docker
 
-before_script:
-  - docker build -t joanfont/santantoni --build-arg env=test .
+stages:
+  - test
+  - push
 
-script:
-  - docker run --rm --entrypoint=pytest joanfont/santantoni
+jobs:
+  include:
+    - stage: test
+      script:
+        - docker build -t joanfont/santantoni:test --build-arg env=test .
+        - docker run --rm --entrypoint=pytest joanfont/santantoni:test
+    - stage: push
+      if: tag IS present
+      script:
+        - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+        - docker build -t joanfont/santantoni:latest --build-arg env=prod .
+        - docker tag joanfont/santantoni:latest joanfont/santantoni:$TRAVIS_TAG
+        - docker push joanfont/santantoni:latest
+        - docker push joanfont/santantoni:$TRAVIS_TAG
