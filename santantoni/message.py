@@ -1,5 +1,6 @@
 from datetime import date
 
+from santantoni.external import Cansoner
 from santantoni.utils import get_next_date
 
 class Message:
@@ -62,3 +63,22 @@ class SantAntoniRemainingDays(Message):
 
         remaining_date = next_sant_antoni - today
         return remaining_date.days
+
+
+class Glosa(Message):
+
+    TEXT = '!glosa'
+
+    cansoner = Cansoner()
+
+    @classmethod
+    def filter(cls, message):
+        return message.text and message.text.lower() == cls.TEXT
+
+    @classmethod
+    def handler(cls, bot, update):
+        chat_id = update.message.chat_id
+
+        glosa = cls.cansoner.get_random_glosa()
+        if glosa:
+            bot.send_message(chat_id, glosa.whole)
