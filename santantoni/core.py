@@ -8,6 +8,7 @@ class SantAntoniBot:
     AVAILABLE_COMMANDS = []
     AVAILABLE_MESSAGES = [
         message.SantAntoniRemainingDays,
+        message.Glosa
     ]
 
     def __init__(self, token):
