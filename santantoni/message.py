@@ -81,4 +81,4 @@ class Glosa(Message):
 
         glosa = cls.cansoner.get_random_glosa()
         if glosa:
-            bot.send_message(chat_id, glosa.brief)
+            bot.send_message(chat_id, glosa.whole)

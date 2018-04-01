@@ -1,41 +1,33 @@
 import random
 
 from bs4 import BeautifulSoup
-from cached_property import cached_property
 import requests
 
-
-class Cansoner:
+class CansonerAPI:
 
     BASE_URL = 'http://www.fundaciocasamuseu.cat/literatura'
     LISTING_URL = 'index.php?s=canconer&ss=cercar&par=sant+antoni'
 
     def __init__(self):
-        self._gloses = []
         self._session = requests.Session()
 
-    @property
-    def gloses(self):
-        if not self._gloses:
-            self._gloses = self._fetch_gloses()
+    def fetch_gloses(self):
+        url = f'{self.BASE_URL}/{self.LISTING_URL}'
+        soup = self._get_soup(url)
 
-        return self._gloses
-
-    def get_random_glosa(self):
-        return random.choice(self.gloses)
-
-    def _fetch_gloses(self):
-        soup = self._get_soup()
         container = soup.find('div', id='resultats_canconer')
-
         container_items = container.find_all('div', class_='glosa')
 
         return list(map(self._build_glosa, container_items))
 
-    def _get_soup(self):
-        url = f'{self.BASE_URL}/{self.LISTING_URL}'
-        response = self._session.get(url)
-        return BeautifulSoup(response.content, 'html.parser')
+    def get_whole_glosa(self, glosa):
+        url = f'{self.BASE_URL}/{glosa.url}'
+        soup = self._get_soup(url)
+
+        container = soup.find('div', class_='fitxa_glosa')
+        whole_glosa = container.find('div', class_='text')
+
+        return whole_glosa.get_text()
 
     def _build_glosa(self, item):
         brief_item = item.find('div', class_='text')
@@ -44,13 +36,54 @@ class Cansoner:
         link = item.find('a')
         url = link['href']
 
-        return Glosa(brief, url)
+        complete_container = item.find('div', class_='completa')
+        complete_link = complete_container.find('a')
+        partial = complete_link is not None
+        print(partial)
+
+        return Glosa(brief, url, partial=partial)
+
+    def _get_soup(self, url):
+        response = self._session.get(url)
+        return BeautifulSoup(response.content, 'html.parser')
+
+
+class Cansoner:
+
+    def __init__(self):
+        self._api = CansonerAPI()
+        self._gloses = []
+
+    @property
+    def gloses(self):
+        if not self._gloses:
+            self._gloses = self._api.fetch_gloses()
+
+        return self._gloses
+
+    def get_random_glosa(self):
+        gloses = self.gloses
+        return random.choice(gloses)
 
 
 class Glosa:
 
-    FULL_URL = 'http://www.fundaciocasamuseu.cat/literatura/{path}'
-
-    def __init__(self, brief, url):
+    def __init__(self, brief, url, partial=False):
         self.brief = brief
         self.url = url
+        self.partial = partial
+
+        self._whole = None
+        self._api = CansonerAPI()
+
+    @property
+    def whole(self):
+        if self._whole:
+            return self._whole
+
+        if not self.partial:
+            self._whole = self.brief
+            return self._whole
+
+        self._whole = self._api.get_whole_glosa(self)
+        return self._whole
