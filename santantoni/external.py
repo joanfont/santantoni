@@ -39,7 +39,7 @@ class Cansoner:
 
     def _build_glosa(self, item):
         brief_item = item.find('div', class_='text')
-        brief = item.get_text()
+        brief = brief_item.get_text()
 
         link = item.find('a')
         url = link['href']
