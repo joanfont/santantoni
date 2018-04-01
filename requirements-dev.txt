@@ -1,2 +1,3 @@
 -r requirements-prod.txt
 -r requirements-test.txt
+ipython==6.2.1
