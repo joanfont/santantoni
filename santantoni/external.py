@@ -39,7 +39,6 @@ class CansonerAPI:
         complete_container = item.find('div', class_='completa')
         complete_link = complete_container.find('a')
         partial = complete_link is not None
-        print(partial)
 
         return Glosa(brief, url, partial=partial)
 
