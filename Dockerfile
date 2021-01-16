@@ -1,7 +1,7 @@
 FROM library/python:3.6.4-alpine
 
 ARG env=prod
-
+RUN apk --no-cache --update add tzdata
 RUN pip3 install -U pip
 
 WORKDIR /code/
