@@ -5,46 +5,49 @@ import requests
 
 class CansonerAPI:
 
-    BASE_URL = 'http://www.fundaciocasamuseu.cat/literatura'
-    LISTING_URL = 'index.php?s=canconer&ss=cercar&par=sant+antoni'
+    URL = 'https://www.mallorcaliteraria.cat/includes/ajax.php'
+    PAYLOAD = {
+        'paraulaSimple': 'sant antoni',
+        'funcio': 'oralSimple'
+    }
+
 
     def __init__(self):
         self._session = requests.Session()
+        self._session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
+            'Referer': 'https://www.mallorcaliteraria.cat/ca/canconer',
+            'Origin': 'https://www.mallorcaliteraria.cat',
+        })
 
     def fetch_gloses(self):
-        url = f'{self.BASE_URL}/{self.LISTING_URL}'
-        soup = self._get_soup(url)
+        response = self._session.post(self.URL, data=self.PAYLOAD)
+        response_payload = response.json()
+        soup = BeautifulSoup(response_payload['str'], 'html.parser')
 
-        container = soup.find('div', id='resultats_canconer')
-        container_items = container.find_all('div', class_='glosa')
+        container_items = soup.find_all('div', class_='bordGlosa')
 
         return list(map(self._build_glosa, container_items))
 
     def get_whole_glosa(self, glosa):
-        url = f'{self.BASE_URL}/{glosa.url}'
-        soup = self._get_soup(url)
+        body = self._session.get(glosa.url)
+        soup = BeautifulSoup(body.content, 'html.parser')
 
-        container = soup.find('div', class_='fitxa_glosa')
-        whole_glosa = container.find('div', class_='text')
+        whole_glosa = soup.find('h2')
 
         return whole_glosa.get_text()
 
     def _build_glosa(self, item):
-        brief_item = item.find('div', class_='text')
+        brief_item = item.find('span')
         brief = brief_item.get_text()
 
         link = item.find('a')
         url = link['href']
 
-        complete_container = item.find('div', class_='completa')
-        complete_link = complete_container.find('a')
-        partial = complete_link is not None
+        complete_container = item.find('small', class_='smallUnderline')
+        partial = complete_container is not None
 
         return Glosa(brief, url, partial=partial)
-
-    def _get_soup(self, url):
-        response = self._session.get(url)
-        return BeautifulSoup(response.content, 'html.parser')
 
 
 class Cansoner:
